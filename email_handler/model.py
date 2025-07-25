@@ -2,10 +2,33 @@ import os
 from dotenv import load_dotenv
 from openai import OpenAI
 from IPython.display import display, Markdown
-
+import warnings
 
 load_dotenv()
 
+class UsageMonitor:
+    def __init__(self,max_requests = 1000,max_tokens = 50000,warning_threshold = 0.8):
+        self.max_requests = max_requests
+        self.max_tokens = max_tokens
+        self.warning_threshold = warning_threshold
+        self.current_requests = 0
+        self.current_tokens = 0
+    def update_usage(self, requests, tokens):
+        self.current_requests += requests
+        self.current_tokens += tokens
+        self.check_usage()
+    
+    def check_usage(self):
+        if self.current_requests > self.max_requests * self.warning_threshold:
+            warnings.warn(f"Warning: You have used {self.current_requests} requests, which is {self.warning_threshold * 100}% of your limit.",UserWarning)
+        if self.current_tokens > self.max_tokens * self.warning_threshold:
+            warnings.warn(f"Warning: You have used {self.current_tokens} tokens, which is {self.warning_threshold * 100}% of your limit.",UserWarning)
+        if self.current_requests > self.max_requests:
+            raise PermissionError(f"Error: You have exceeded your request limit of {self.max_requests}.")
+        if self.current_tokens > self.max_tokens:
+            raise PermissionError(f"Error: You have exceeded your token limit of {self.max_tokens}.")
+
+monitor = UsageMonitor()
 class Model:
     def __init__(self):
         
@@ -34,6 +57,7 @@ class Model:
     
 
     def summerize(self,email_content):
+        monitor.check_usage()
         self.message = [
             {
                 "role": "system",
@@ -58,6 +82,7 @@ class Model:
             messages=self.message,
             )
             summary = response.choices[0].message.content.strip()
+            monitor.update_usage(1, len(summary.split()))
             return summary
         except Exception as e:
             return f"An error occurred while processing the email: {str(e)}"
