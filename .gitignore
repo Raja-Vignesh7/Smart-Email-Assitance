@@ -1,2 +1,3 @@
 .env
 temp.py
+email_handler/accounts.json
