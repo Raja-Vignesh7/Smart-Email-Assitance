@@ -269,19 +269,19 @@ class fetcher:
             }]
 
 
-# Test the fetcher when run directly
-if __name__ == "__main__":
-    print("Testing email fetcher...")
+# # Test the fetcher when run directly
+# if __name__ == "__main__":
+#     print("Testing email fetcher...")
     
-    # Test with different parameters
-    print("\n1. Testing with default parameters (10 emails):")
-    emails = fetcher.fetch()
-    print(f"Fetched {len(emails)} email(s)")
+#     # Test with different parameters
+#     print("\n1. Testing with default parameters (10 emails):")
+#     emails = fetcher.fetch()
+#     print(f"Fetched {len(emails)} email(s)")
     
-    print("\n2. Testing with max_emails=5:")
-    emails = fetcher.fetch(max_emails=5)
-    print(f"Fetched {len(emails)} email(s)")
+#     print("\n2. Testing with max_emails=5:")
+#     emails = fetcher.fetch(max_emails=5)
+#     print(f"Fetched {len(emails)} email(s)")
     
-    print("\n3. Testing with end_date (before 01-Dec-2024):")
-    emails = fetcher.fetch(max_emails=3, end_date="01-Dec-2024")
-    print(f"Fetched {len(emails)} email(s)")
+#     print("\n3. Testing with end_date (before 01-Dec-2024):")
+#     emails = fetcher.fetch(max_emails=3, end_date="01-Dec-2024")
+#     print(f"Fetched {len(emails)} email(s)")
