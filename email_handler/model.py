@@ -3,73 +3,71 @@ from dotenv import load_dotenv
 from openai import OpenAI
 from IPython.display import display, Markdown
 
-# Load environment variables from .env file
+
 load_dotenv()
 
-gemini_api_key = os.getenv("GEMINI_API_KEY")
-
-if not gemini_api_key:
-    raise ValueError("GEMINI_API_KEY environment variable is not set.")
-
-# Initialize the OpenAI client with the Gemini API key
-client = OpenAI(api_key=gemini_api_key)
-
-system_prompt = """ Imagine You are a obident Assistent for the user,you have to identify is the mail is about events, club related,\
-            office ralted placements or internship,along with dates and time of the events or palcements deadline in it or any office ralted and return simple summary yet more informative and return it in markdown format."""
-
-def user_prompt(email_content):
-    return f"""
-    You are an AI assistant that helps users manage their emails.\
-    Your task is to analyze the following email content and provide a concise summary or action items.\
-    Focus on identifying key information, deadlines, and any actions the user should take.\
-    If the email contains any dates or deadlines, highlight them clearly.
-
-    Email Content:
-    {email_content}
-    """
-
-
-email_content = """"""
- 
-message = [
-    {
-        "role": "system",
-        "content": system_prompt
-    },
-    {
-        "role": "user",
-        "content": user_prompt(email_content)
-    }
-]
-
-def summerize(email_content):
-    """
-    Summarizes the given email content using the Gemini API.
-    
-    Args:
-        email_content (str): The content of the email to summarize.
+class Model:
+    def __init__(self):
         
-    Returns:
-        str: The summary or action items extracted from the email.
-    """
-    if not email_content.strip():
-        return "No email content provided."
-    message[1]["content"] = user_prompt(email_content)
-    gemini_via_openai_client = OpenAI(
-    api_key=gemini_api_key, 
-    base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
-    )
+        self.gemini_api_key = os.getenv("GEMINI_API_KEY")
 
-    response = gemini_via_openai_client.chat.completions.create(
-    model="gemini-2.5-flash",
-    messages=message,
-    )
-    summary = response.choices[0].message.content.strip()
-    return summary
+        if not self.gemini_api_key:
+            raise ValueError("GEMINI_API_KEY environment variable is not set.")
+
+        self.client = OpenAI(api_key=self.gemini_api_key)
+
+        self.system_prompt = """You are a obident Assistent for the user,you have to identify and summerize the mail,\
+            check if the mail is about events, club related, office ralted placements or internship,along with dates and\
+                time of the events or palcements deadline in it or any office ralted and return simple summary yet more informative\
+                    and return it in markdown format."""
+
+    def user_prompt(self,email_content):
+        return f"""
+        You are an AI assistant that helps users manage their emails.\
+        Your task is to analyze the following email content and provide a concise summary or action items.\
+        Focus on identifying key information, deadlines, and any actions the user should take.\
+        If the email contains any dates or deadlines, highlight them clearly.
+
+        Email Content:
+        {email_content}
+        """
+    
+
+    def summerize(self,email_content):
+        self.message = [
+            {
+                "role": "system",
+                "content": self.system_prompt
+            },
+            {
+                "role": "user",
+                "content": self.user_prompt(email_content)
+            }
+        ]
+        try:
+            if not email_content.strip():
+                return "No email content provided."
+            self.message[1]["content"] = self.user_prompt(email_content)
+            gemini_via_openai_client = OpenAI(
+            api_key=self.gemini_api_key, 
+            base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
+            )
+
+            response = gemini_via_openai_client.chat.completions.create(
+            model="gemini-2.5-flash",
+            messages=self.message,
+            )
+            summary = response.choices[0].message.content.strip()
+            return summary
+        except Exception as e:
+            return f"An error occurred while processing the email: {str(e)}"
 
 
-
-display(summerize(email_content))
+# Example usage:
+# if __name__ == "__main__":
+#     model = Model()
+#     email_content = """"""
+#     display(model.summerize(email_content))
 
 
 
