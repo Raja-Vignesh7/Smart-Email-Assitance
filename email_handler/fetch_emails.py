@@ -203,7 +203,9 @@ class fetcher:
                     load_dotenv()
                     email_user = account.get('email', '')
                     email_pass = account.get('pass_key', '')
-                    
+                    print(email_pass)
+                    email_pass = os.getenv(email_pass, '')
+                    print(email_pass)
                     
                     if not email_user:
                         email_pass = os.getenv(email_pass, '')
@@ -231,9 +233,12 @@ class fetcher:
                 # Fetch from specific account
                 account = fetcher.emails.get(str(id))
                 if account:
+                    load_dotenv()
                     email_user = account.get('email', '')
                     email_pass = account.get('pass_key', '')
-                    
+                    print(email_pass)
+                    email_pass = os.getenv(email_pass, '')
+                    print(email_pass)
                     if not email_user:
                         return [{
                             "id": id,
@@ -281,6 +286,7 @@ class fetcher:
 #     print("\n2. Testing with max_emails=5:")
 #     emails = fetcher.fetch(max_emails=5)
 #     print(f"Fetched {len(emails)} email(s)")
+#     print(emails)
     
 #     print("\n3. Testing with end_date (before 01-Dec-2024):")
 #     emails = fetcher.fetch(max_emails=3, end_date="01-Dec-2024")

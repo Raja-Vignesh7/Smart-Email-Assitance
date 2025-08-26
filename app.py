@@ -11,7 +11,7 @@ if 'account' not in st.session_state:
 if 'account_id' not in st.session_state:
     st.session_state.account_id = None
 
-pages = st.sidebar.selectbox("Select Page", ["Account", "Summary", "Emails"])
+pages = st.sidebar.selectbox("Select Page", ["Account", "Summary", "Emails","Settings"])
 
 def read_file(file):
     with open(file, "rb") as file:
@@ -41,6 +41,19 @@ if pages == "Account":
 elif pages == "Summary":
     if st.session_state.account:
         st.write(f"### Account: {st.session_state.account}")
+        col1, col2, col3 = st.columns([1,1,1])
+        with col1:
+            option = st.radio("Emails", ["Seen", "Unseen"], horizontal=True, key="seen_status")
+        with col2:
+            no_of_emails_wanted = st.slider("Number of Emails", 1, 50, 10, key="num_emails")
         # st.write(f"Account ID: {st.session_state.account_id}")
+        with col3:
+            end_data = st.date_input("End Date")
+            # print(end_data)
+            option = True if option=="Unseen" else False
+        if st.button("Fetch and Summarize Emails"):
+            emails = fetch_emails.fetcher.fetch(id=st.session_state.account_id, max_emails=no_of_emails_wanted, end_date=end_data, fetch_all=option)
+            print(st.session_state.account_id)
+            st.write(emails)
     else:
-        st.warning("## Please select an email account on the Account page.")
+        st.warning("### Please select an email account on the Account page.")
