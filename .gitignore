@@ -1,3 +1,4 @@
 .env
 temp.py
 email_handler/accounts.json
+email_handler/__pycache__/
