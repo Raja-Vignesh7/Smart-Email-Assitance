@@ -33,27 +33,27 @@ class fetcher:
                 mail = imaplib.IMAP4_SSL("imap.gmail.com")
                 mail.login(email_user, email_pass)
                 mail.select("inbox")
-
-                # Build search criteria
-                search_criteria = "UNSEEN"
                 
+                # Build search criteria based on fetch_all
+                if fetch_all:
+                    search_criteria = "ALL"
+                else:
+                    search_criteria = "UNSEEN"
+
                 # Add date filter if end_date is provided
                 if end_date:
                     try:
-                        # Convert end_date to IMAP format if needed
                         if isinstance(end_date, str):
-                            # Expected format: 'DD-MMM-YYYY' (e.g., '01-Jan-2024')
-                            # IMAP uses format like '01-Jan-2024'
-                            search_criteria = f'(UNSEEN BEFORE "{end_date}")'
+                            formatted_date = end_date
                         else:
-                            # If datetime object, convert to string
                             formatted_date = end_date.strftime('%d-%b-%Y')
-                            search_criteria = f'(UNSEEN BEFORE "{formatted_date}")'
+                        
+                        status_flag = "ALL" if fetch_all else "UNSEEN"
+                        search_criteria = f'({status_flag} BEFORE "{formatted_date}")'
                     except Exception as date_error:
                         print(f"Error parsing end_date: {date_error}. Using default search.")
-                        search_criteria = "UNSEEN"
+                        search_criteria = "ALL" if fetch_all else "UNSEEN"
 
-                # Search and fetch emails
                 status, messages = mail.search(None, search_criteria)
                 email_ids = messages[0].split()
 
@@ -66,14 +66,13 @@ class fetcher:
                         "message": f"No unread emails found{' before ' + str(end_date) if end_date else ''}"
                     }
 
+                # Reverse email_ids to fetch latest emails first
+                email_ids = email_ids[::-1]
+
                 # Determine how many emails to fetch
                 total_emails = len(email_ids)
-                if fetch_all or max_emails <= 0:
-                    emails_to_fetch = email_ids
-                    fetch_count = total_emails
-                else:
-                    emails_to_fetch = email_ids[:max_emails]
-                    fetch_count = min(max_emails, total_emails)
+                emails_to_fetch = email_ids[:max_emails]
+                fetch_count = max_emails
                 
                 print(f"Account {acc_id}: Found {total_emails} unseen emails, fetching {fetch_count}")
                 
@@ -275,7 +274,7 @@ class fetcher:
 
 
 # # Test the fetcher when run directly
-# if __name__ == "__main__":
+if __name__ == "__main__":
 #     print("Testing email fetcher...")
     
 #     # Test with different parameters
@@ -289,5 +288,6 @@ class fetcher:
 #     print(emails)
     
 #     print("\n3. Testing with end_date (before 01-Dec-2024):")
-#     emails = fetcher.fetch(max_emails=3, end_date="01-Dec-2024")
-#     print(f"Fetched {len(emails)} email(s)")
+    emails = fetcher.fetch(id=1 ,max_emails=10,fetch_all=True)
+    print(f"Fetched {len(emails)} email(s)")
+    print(emails)
