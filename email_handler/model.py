@@ -28,11 +28,11 @@ class UsageMonitor:
         if self.current_tokens > self.max_tokens:
             raise PermissionError(f"Error: You have exceeded your token limit of {self.max_tokens}.")
 
-monitor = UsageMonitor()
 class Model:
     def __init__(self):
         
         self.gemini_api_key = os.getenv("GEMINI_API_KEY")
+        self.monitor = UsageMonitor()
 
         if not self.gemini_api_key:
             raise ValueError("GEMINI_API_KEY environment variable is not set.")
@@ -57,7 +57,7 @@ class Model:
     
 
     def summerize(self,email_content):
-        monitor.check_usage()
+        self.monitor.check_usage()
         self.message = [
             {
                 "role": "system",
@@ -82,7 +82,7 @@ class Model:
             messages=self.message,
             )
             summary = response.choices[0].message.content.strip()
-            monitor.update_usage(1, len(summary.split()))
+            self.monitor.update_usage(1, len(summary.split()))
             return summary
         except Exception as e:
             return f"An error occurred while processing the email: {str(e)}"
