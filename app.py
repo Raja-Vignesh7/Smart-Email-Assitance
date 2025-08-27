@@ -79,9 +79,9 @@ elif pages == "Summary":
             )
             model_instance = Model()
             summaries = {}
-            for email in emails:
+            for i, email in enumerate(emails, start=1):
                 summary = model_instance.summerize(email.get('Body', ''))
-                summaries[1] = {
+                summaries[i] = {
                     "Subject" : email.get('Subject', 'No Subject'),
                     "From" : email.get('From', 'Unknown Sender'),
                     "Date" : email.get('Date', 'Unknown Date'),
@@ -96,6 +96,7 @@ elif pages == "Summary":
                 #     "From" : email.get('From', 'Unknown Sender'),
                 #     "Date" : email.get('Date', 'Unknown Date'),
                 #     "Summery" : summary})
+            st.success(f"Fetched and summarized {len(emails)} email(s).")
     else:
         st.warning("### Please select an email account on the Account page.")
 
