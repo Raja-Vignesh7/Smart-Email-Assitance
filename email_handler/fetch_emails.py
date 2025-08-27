@@ -202,9 +202,7 @@ class fetcher:
                     load_dotenv()
                     email_user = account.get('email', '')
                     email_pass = account.get('pass_key', '')
-                    print(email_pass)
                     email_pass = os.getenv(email_pass, '')
-                    print(email_pass)
                     
                     if not email_user:
                         email_pass = os.getenv(email_pass, '')
@@ -274,20 +272,20 @@ class fetcher:
 
 
 # # Test the fetcher when run directly
-if __name__ == "__main__":
-#     print("Testing email fetcher...")
+# if __name__ == "__main__":
+# #     print("Testing email fetcher...")
     
-#     # Test with different parameters
-#     print("\n1. Testing with default parameters (10 emails):")
-#     emails = fetcher.fetch()
-#     print(f"Fetched {len(emails)} email(s)")
+# #     # Test with different parameters
+# #     print("\n1. Testing with default parameters (10 emails):")
+# #     emails = fetcher.fetch()
+# #     print(f"Fetched {len(emails)} email(s)")
     
-#     print("\n2. Testing with max_emails=5:")
-#     emails = fetcher.fetch(max_emails=5)
+# #     print("\n2. Testing with max_emails=5:")
+# #     emails = fetcher.fetch(max_emails=5)
+# #     print(f"Fetched {len(emails)} email(s)")
+# #     print(emails)
+    
+# #     print("\n3. Testing with end_date (before 01-Dec-2024):")
+#     emails = fetcher.fetch(id=1 ,max_emails=10,fetch_all=True)
 #     print(f"Fetched {len(emails)} email(s)")
 #     print(emails)
-    
-#     print("\n3. Testing with end_date (before 01-Dec-2024):")
-    emails = fetcher.fetch(id=1 ,max_emails=10,fetch_all=True)
-    print(f"Fetched {len(emails)} email(s)")
-    print(emails)
