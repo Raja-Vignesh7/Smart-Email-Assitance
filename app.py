@@ -3,6 +3,7 @@ import os
 import json
 from email_handler import fetch_emails , model
 from email_handler.model import Model
+from datetime import date
 st.set_page_config(page_title="Email Assistant", layout="wide")
 
 # Initialize session state safely
@@ -11,11 +12,33 @@ if 'account' not in st.session_state:
 if 'account_id' not in st.session_state:
     st.session_state.account_id = None
 
-pages = st.sidebar.selectbox("Select Page", ["Account", "Summary", "Emails","Settings"])
+pages = st.sidebar.selectbox("Select Page", ["Account", "Summary", "History","Settings"])
 
 def read_file(file):
     with open(file, "rb") as file:
         return json.load(file)
+    
+def add_data_to_history(date_key, new_object,file_path=os.path.join(os.getcwd(),'history.json')):
+    """
+    Adds a new object to a list for a given date key in a JSON file.
+
+    Args:
+        file_path (str): The path to the JSON file.
+        date_key (str): The date key to add the object to.
+        new_object (dict): The new object to add.
+    """
+    if new_object is None or date_key is None:
+        return
+    data = read_file(file_path)
+    
+    if date_key in data:
+        data[date_key].append(new_object)
+    else:
+        data[date_key] = [new_object]
+        
+    with open(file_path, 'w') as f:
+        json.dump(data, f, indent=2)
+
 
 def get_accounts(file_path):
     data = read_file(file_path)
@@ -71,7 +94,7 @@ elif pages == "Summary":
         st.write(f"Option selected: {st.session_state.seen_status}, {fetch_seen}")
         st.write(f"Number of Emails: {st.session_state.num_emails}")
         if st.button("Fetch and Summarize Emails"):
-            emails = fetch_emails.fetcher.fetch(
+            emails , total_emails , fetch_count = fetch_emails.fetcher.fetch(
                 id=st.session_state.account_id,
                 max_emails=st.session_state.num_emails,
                 end_date=st.session_state.end_date,
@@ -79,6 +102,7 @@ elif pages == "Summary":
             )
             model_instance = Model()
             summaries = {}
+            st.markdown(f"### Fetched {fetch_count} email(s) out of {total_emails} available.")
             for i, email in enumerate(emails, start=1):
                 summary = model_instance.summerize(email.get('Body', ''))
                 summaries[i] = {
@@ -96,10 +120,30 @@ elif pages == "Summary":
                 #     "From" : email.get('From', 'Unknown Sender'),
                 #     "Date" : email.get('Date', 'Unknown Date'),
                 #     "Summery" : summary})
+            add_data_to_history(date_key=str(date.today()), new_object=summaries)
             st.success(f"Fetched and summarized {len(emails)} email(s).")
     else:
         st.warning("### Please select an email account on the Account page.")
-
+elif pages == "History":
+    st.write("### Email Summary History")
+    history_data = read_file(os.path.join(os.getcwd(),'history.json'))
+    if history_data:
+        date_key = history_data.keys()
+        history_date = st.selectbox("Select Date", date_key, key="history_date")
+        if history_date:
+            history_data = {history_date: history_data[history_date]}
+        for date_key, summaries in history_data.items():
+            st.markdown(f"## Date: {date_key}")
+            for summary in summaries:
+                for idx, details in summary.items():
+                    st.markdown(f"### Email {idx}")
+                    st.markdown(f"**Subject:** {details.get('Subject', 'No Subject')}")
+                    st.markdown(f"**From:** {details.get('From', 'Unknown Sender')}")
+                    st.markdown(f"**Date:** {details.get('Date', 'Unknown Date')}")
+                    st.markdown(f"**Summary:** {details.get('Summery', 'No Summary')}")
+                    st.markdown("___")
+    else:
+        st.info("No history available.")
 
 # elif pages == "Summary":
 #     if st.session_state.account:
