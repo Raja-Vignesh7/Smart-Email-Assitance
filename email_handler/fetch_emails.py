@@ -2,7 +2,7 @@ import imaplib
 import email
 from email.header import decode_header
 import json
-from datetime import datetime
+from datetime import datetime, timedelta, date
 import os
 from dotenv import load_dotenv
 
@@ -44,15 +44,22 @@ class fetcher:
                 if end_date:
                     try:
                         if isinstance(end_date, str):
-                            formatted_date = end_date
+                            formatted_date = datetime.strptime(end_date, "%d-%b-%Y")
                         else:
-                            formatted_date = end_date.strftime('%d-%b-%Y')
-                        
+                            formatted_date = end_date
+
+                        next_day = date.today()
+                        since_date = formatted_date.strftime('%d-%b-%Y')
+                        before_date = (next_day + timedelta(days=1)).strftime('%d-%b-%Y')
+
+
                         status_flag = "ALL" if fetch_all else "UNSEEN"
-                        search_criteria = f'({status_flag} BEFORE "{formatted_date}")'
+                        search_criteria = f'({status_flag} SINCE "{since_date}" BEFORE "{before_date}")'
+
                     except Exception as date_error:
                         print(f"Error parsing end_date: {date_error}. Using default search.")
                         search_criteria = "ALL" if fetch_all else "UNSEEN"
+
 
                 status, messages = mail.search(None, search_criteria)
                 email_ids = messages[0].split()
@@ -71,8 +78,8 @@ class fetcher:
 
                 # Determine how many emails to fetch
                 total_emails = len(email_ids)
-                emails_to_fetch = email_ids[:max_emails]
-                fetch_count = max_emails
+                fetch_count = min(total_emails,max_emails)
+                emails_to_fetch = email_ids[:fetch_count]
                 
                 print(f"Account {acc_id}: Found {total_emails} unseen emails, fetching {fetch_count}")
                 
@@ -144,33 +151,33 @@ class fetcher:
                 
                 # Return all emails or a status message if no emails were processed
                 if all_emails:
-                    return all_emails
+                    return all_emails , total_emails , fetch_count
                 else:
                     return {
                         "id": acc_id,
                         "status": "processing_error",
                         "message": "No emails could be processed successfully"
-                    }
+                    }, 0 , 0
                     
             else:
                 return {
                     "id": acc_id,
                     "status": "error",
                     "message": "Invalid or missing password key"
-                }
+                } , 0 , 0 
                 
         except imaplib.IMAP4.error as imap_error:
             return {
                 "id": acc_id,
                 "status": "error",
                 "message": f"IMAP error: {imap_error}"
-            }
+            } , 0,0
         except Exception as e:
             return {
                 "id": acc_id,
                 "status": "error", 
                 "message": f"Connection error: {e}"
-            }
+            } ,0,0
     
     def fetch(id=-1, max_emails=10, end_date=None, fetch_all=False):
         """
@@ -243,32 +250,32 @@ class fetcher:
                             "message": "Email address not found in account configuration" 
                         }]
                     
-                    details = fetcher.get_emails(id, email_user, email_pass, 
+                    details , total_emails , fetch_count = fetcher.get_emails(id, email_user, email_pass, 
                                                max_emails=max_emails, 
                                                end_date=end_date,
                                                fetch_all=fetch_all)
                     
                     if isinstance(details, list):
-                        return details
+                        return details , total_emails , fetch_count
                     else:
-                        return [details]
+                        return [details] , total_emails , fetch_count
                 else:
                     return [{
                         "id": id,
                         "status": "error",
                         "message": f"Account with ID {id} not found"
-                    }]
+                    }] , total_emails , fetch_count
             
             return results if results else [{
                 "status": "error",
                 "message": "No emails could be fetched from any account"
-            }]
+            }] , total_emails , fetch_count
                     
         except Exception as e:
             return [{
                 "status": "error",
                 "message": f"Fetch operation failed: {e}"
-            }]
+            }] , total_emails , fetch_count
 
 
 # # Test the fetcher when run directly
@@ -286,6 +293,6 @@ class fetcher:
 # #     print(emails)
     
 # #     print("\n3. Testing with end_date (before 01-Dec-2024):")
-#     emails = fetcher.fetch(id=1 ,max_emails=10,fetch_all=True)
-#     print(f"Fetched {len(emails)} email(s)")
-#     print(emails)
+    # emails = fetcher.fetch(id=2 ,max_emails=50,fetch_all=True, end_date="27-Aug-2025")
+    # print(f"Fetched {len(emails)} email(s)")
+    # print(emails)
