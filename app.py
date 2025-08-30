@@ -129,57 +129,33 @@ elif pages == "Summary":
     else:
         st.warning("### Please select an email account on the Account page.")
 elif pages == "History":
-    st.write("### Email Summary History")
-    history_data = read_file(os.path.join(os.getcwd(),'history.json'))
-    user_id = st.session_state.account_id
-    if user_id and user_id in history_data:
-        history_data = history_data[user_id]
+    if st.session_state.account:
+        st.write("### Email Summary History")
+        history_data = read_file(os.path.join(os.getcwd(),'history.json'))
+        user_id = st.session_state.account_id
+        if user_id and user_id in history_data:
+            history_data = history_data[user_id]
+        else:
+            history_data = {}
+        if history_data:
+            date_key = history_data.keys()
+            history_date = st.selectbox("Select Date", date_key, key="history_date")
+            if history_date:
+                history_data = {history_date: history_data[history_date]}
+            for date_key, summaries in history_data.items():
+                st.markdown(f"## Date: {date_key}")
+                for summary in summaries:
+                    for idx, details in summary.items():
+                        st.markdown(f"Email {idx}")
+                        st.markdown(f"### **Subject:** {details.get('Subject', 'No Subject')}")
+                        st.markdown(f"**From:** {details.get('From', 'Unknown Sender')}")
+                        st.markdown(f"**Date:** {details.get('Date', 'Unknown Date')}")
+                        st.markdown(f"**Summary:** {details.get('Summery', 'No Summary')}")
+                        st.markdown("___")
+        else:
+            st.info("No history available.")
     else:
-        history_data = {}
-    if history_data:
-        date_key = history_data.keys()
-        history_date = st.selectbox("Select Date", date_key, key="history_date")
-        if history_date:
-            history_data = {history_date: history_data[history_date]}
-        for date_key, summaries in history_data.items():
-            st.markdown(f"## Date: {date_key}")
-            for summary in summaries:
-                for idx, details in summary.items():
-                    st.markdown(f"### Email {idx}")
-                    st.markdown(f"**Subject:** {details.get('Subject', 'No Subject')}")
-                    st.markdown(f"**From:** {details.get('From', 'Unknown Sender')}")
-                    st.markdown(f"**Date:** {details.get('Date', 'Unknown Date')}")
-                    st.markdown(f"**Summary:** {details.get('Summery', 'No Summary')}")
-                    st.markdown("___")
-    else:
-        st.info("No history available.")
-
-# elif pages == "Summary":
-#     if st.session_state.account:
-#         st.write(f"### Account: {st.session_state.account}")
-#         col1, col2, col3 = st.columns([1,1,1])
-#         with col1:
-#             option = st.radio("Emails", ["Seen", "Unseen"], horizontal=True, key="seen_status")
-#             st.write(f"Option selected: {option}")
-#         with col2:
-#             no_of_emails_wanted = st.slider("Number of Emails", 1, 50, 10, key="num_emails")
-#             if st.button("Submit Number"):
-#                 st.write(f"Number of Emails: {no_of_emails_wanted}")
-#             else:
-#                 no_of_emails_wanted = 10
-#         # st.write(f"Account ID: {st.session_state.account_id}")
-#         with col3:
-#             end_data = st.date_input("End Date")
-#             if st.button("Submit Data"):
-#                 st.write(f"End Date: {end_data}")
-#             else:
-#                 end_data = None
-#             # print(end_data)
-#         option = True if option=="Seen" else False
-#         if st.button("Fetch and Summarize Emails"):
-#             emails = fetch_emails.fetcher.fetch(id=st.session_state.account_id, max_emails=no_of_emails_wanted, end_date=end_data, fetch_all=option)
-#             for email in emails:
-#                 print(st.session_state.account_id)
-#                 st.write(emails)
-#     else:
-#         st.warning("### Please select an email account on the Account page.")
+        st.warning("### Please select an email account on the Account page.")
+elif pages == "Settings":
+    st.write("### Settings")
+    st.write("Settings page is under construction.")
