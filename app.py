@@ -18,7 +18,7 @@ def read_file(file):
     with open(file, "rb") as file:
         return json.load(file)
     
-def add_data_to_history(date_key, new_object,file_path=os.path.join(os.getcwd(),'history.json')):
+def add_data_to_history(date_key, new_object,id,file_path=os.path.join(os.getcwd(),'history.json')):
     """
     Adds a new object to a list for a given date key in a JSON file.
 
@@ -30,12 +30,16 @@ def add_data_to_history(date_key, new_object,file_path=os.path.join(os.getcwd(),
     if new_object is None or date_key is None:
         return
     data = read_file(file_path)
-    
-    if date_key in data:
-        data[date_key].append(new_object)
+    if id not in data:
+        data[id] = {}
+    user_data = data[id]
+    # Ensure the date_key exists and is a list 
+    if date_key in user_data:
+        user_data[date_key].append(new_object)
     else:
-        data[date_key] = [new_object]
-        
+        user_data[date_key] = [new_object]
+    data[id] = user_data
+    # Write the updated data back to the file  
     with open(file_path, 'w') as f:
         json.dump(data, f, indent=2)
 
@@ -120,13 +124,18 @@ elif pages == "Summary":
                 #     "From" : email.get('From', 'Unknown Sender'),
                 #     "Date" : email.get('Date', 'Unknown Date'),
                 #     "Summery" : summary})
-            add_data_to_history(date_key=str(date.today()), new_object=summaries)
+            add_data_to_history(date_key=str(date.today()), new_object=summaries,id=st.session_state.account_id)
             st.success(f"Fetched and summarized {len(emails)} email(s).")
     else:
         st.warning("### Please select an email account on the Account page.")
 elif pages == "History":
     st.write("### Email Summary History")
     history_data = read_file(os.path.join(os.getcwd(),'history.json'))
+    user_id = st.session_state.account_id
+    if user_id and user_id in history_data:
+        history_data = history_data[user_id]
+    else:
+        history_data = {}
     if history_data:
         date_key = history_data.keys()
         history_date = st.selectbox("Select Date", date_key, key="history_date")
